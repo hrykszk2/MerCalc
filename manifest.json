@@ -2,7 +2,7 @@
   "name": "MerCalc - メルカリ利益計算",
   "short_name": "MerCalc",
   "description": "メルカリの利益・損益分岐価格を計算するツール",
-  "start_url": "./MerCalc_index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0d0f14",
   "theme_color": "#ff2d55",

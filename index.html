@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ff2d55" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <title>メルカリ 利益計算ツール</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0f14;
+      --surface: #161a24;
+      --surface2: #1e2232;
+      --border: #2a2f45;
+      --accent: #ff2d55;
+      --accent2: #ff6b35;
+      --green: #30d158;
+      --red: #ff453a;
+      --text: #f0f2f8;
+      --muted: #8890ab;
+      --radius: 16px;
+    }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      background-image:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(255,45,85,0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(255,107,53,0.12) 0%, transparent 70%);
+    }
+
+    .card {
+      width: 100%;
+      max-width: 460px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 36px 32px 32px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04) inset;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 16px rgba(255,45,85,0.4);
+    }
+
+    .logo-text {
+      font-size: 22px;
+      font-weight: 900;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .field {
+      margin-bottom: 20px;
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-wrap span {
+      position: absolute;
+      right: 16px;
+      color: var(--muted);
+      font-size: 14px;
+      pointer-events: none;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 18px;
+      font-weight: 700;
+      padding: 14px 48px 14px 18px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -moz-appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    input[type="number"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(255,45,85,0.18);
+    }
+
+    /* Shipping selector */
+    .ship-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .ship-btn {
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 13px 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+      line-height: 1.4;
+      text-align: center;
+    }
+
+    .ship-btn .ship-price {
+      display: block;
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--text);
+      margin-top: 2px;
+    }
+
+    .ship-btn:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .ship-btn.active {
+      background: linear-gradient(135deg, rgba(255,45,85,0.18), rgba(255,107,53,0.12));
+      border-color: var(--accent);
+      color: var(--text);
+      box-shadow: 0 0 0 3px rgba(255,45,85,0.15);
+    }
+
+    .ship-btn.active .ship-price {
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Divider */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 24px 0;
+    }
+
+    /* Calc button */
+    .calc-btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      border-radius: 14px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 17px;
+      font-weight: 900;
+      padding: 18px;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      transition: transform 0.15s, box-shadow 0.2s, filter 0.2s;
+      box-shadow: 0 8px 24px rgba(255,45,85,0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .calc-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .calc-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(255,45,85,0.5); }
+    .calc-btn:hover::after { opacity: 1; }
+    .calc-btn:active { transform: translateY(0); filter: brightness(0.9); }
+
+    /* Results */
+    .results {
+      margin-top: 24px;
+      display: none;
+      animation: slideUp 0.35s ease;
+    }
+
+    .results.visible { display: block; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .result-card {
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 16px;
+      text-align: center;
+      transition: border-color 0.3s;
+    }
+
+    .result-card .r-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .result-card .r-value {
+      font-size: 28px;
+      font-weight: 900;
+    }
+
+    .result-card .r-value sup { font-size: 14px; vertical-align: super; }
+
+    .result-card.profit-pos { border-color: var(--green); }
+    .result-card.profit-pos .r-value { color: var(--green); }
+    .result-card.profit-neg { border-color: var(--red); }
+    .result-card.profit-neg .r-value { color: var(--red); }
+    .result-card.breakeven { border-color: var(--accent2); }
+    .result-card.breakeven .r-value { color: var(--accent2); }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 16px;
+      padding: 12px 4px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .detail-row span:last-child {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .fee-note {
+      text-align: center;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <div class="logo">
+        <div class="logo-icon">📦</div>
+        <div class="logo-text">MerCalc</div>
+      </div>
+      <p class="subtitle">メルカリ 利益・損益分岐計算ツール</p>
+    </div>
+
+    <!-- 発送方法 -->
+    <div class="field">
+      <div class="section-label">発送方法</div>
+      <div class="ship-options">
+        <button class="ship-btn" id="btn-mini" onclick="selectShipping('mini')">
+          ゆうパケット<br>ポストmini
+          <span class="ship-price">¥160</span>
+        </button>
+        <button class="ship-btn" id="btn-neko" onclick="selectShipping('neko')">
+          ネコポス
+          <span class="ship-price">¥210</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 原価 -->
+    <div class="field">
+      <div class="section-label">原価（仕入れ値）</div>
+      <div class="input-wrap">
+        <input type="number" id="cost" placeholder="0" min="0" />
+        <span>円</span>
+      </div>
+    </div>
+
+    <!-- 設定価格 -->
+    <div class="field">
+      <div class="section-label">設定価格（販売価格）</div>
+      <div class="input-wrap">
+        <input type="number" id="price" placeholder="0" min="0" />
+        <span>円</span>
+      </div>
+    </div>
+
+    <!-- 送料 -->
+    <div class="field">
+      <div class="section-label">送料</div>
+      <div class="input-wrap">
+        <input type="number" id="shipping" placeholder="0" min="0" />
+        <span>円</span>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <button class="calc-btn" onclick="calculate()">計算する</button>
+
+    <!-- 結果 -->
+    <div class="results" id="results">
+      <div class="result-grid">
+        <div class="result-card" id="profit-card">
+          <div class="r-label">利益</div>
+          <div class="r-value" id="profit-val">—</div>
+        </div>
+        <div class="result-card breakeven" id="breakeven-card">
+          <div class="r-label">損益分岐価格</div>
+          <div class="r-value" id="breakeven-val">—</div>
+        </div>
+      </div>
+      <div class="detail-row">
+        <span>販売手数料（10%）</span>
+        <span id="fee-val">—</span>
+      </div>
+      <div class="detail-row">
+        <span>手取り（税引後売上）</span>
+        <span id="net-val">—</span>
+      </div>
+      <p class="fee-note">損益分岐価格 = (原価 + 送料) ÷ 0.9　（小数点繰り上げ）</p>
+    </div>
+  </div>
+
+  <script>
+    function selectShipping(type) {
+      const mini = document.getElementById('btn-mini');
+      const neko = document.getElementById('btn-neko');
+      const shipInput = document.getElementById('shipping');
+
+      mini.classList.remove('active');
+      neko.classList.remove('active');
+
+      if (type === 'mini') {
+        mini.classList.add('active');
+        shipInput.value = 160;
+      } else {
+        neko.classList.add('active');
+        shipInput.value = 210;
+      }
+    }
+
+    function calculate() {
+      const cost     = parseFloat(document.getElementById('cost').value)     || 0;
+      const price    = parseFloat(document.getElementById('price').value)    || 0;
+      const shipping = parseFloat(document.getElementById('shipping').value) || 0;
+
+      // 手数料 = 設定価格 × 0.1（切り捨て）
+      const fee    = Math.floor(price * 0.1);
+      // 手取り = 設定価格 - 手数料
+      const net    = price - fee;
+      // 利益 = 手取り - 原価 - 送料
+      const profit = net - cost - shipping;
+
+      // 損益分岐価格 = (原価 + 送料) ÷ 0.9  (切り上げ)
+      const breakeven = Math.ceil((cost + shipping) / 0.9);
+
+      // 表示
+      const resultsEl     = document.getElementById('results');
+      const profitCard    = document.getElementById('profit-card');
+      const profitVal     = document.getElementById('profit-val');
+      const breakevenVal  = document.getElementById('breakeven-val');
+      const feeVal        = document.getElementById('fee-val');
+      const netVal        = document.getElementById('net-val');
+
+      profitVal.textContent    = `¥${profit.toLocaleString()}`;
+      breakevenVal.textContent = `¥${breakeven.toLocaleString()}`;
+      feeVal.textContent       = `−¥${fee.toLocaleString()}`;
+      netVal.textContent       = `¥${net.toLocaleString()}`;
+
+      profitCard.className = 'result-card ' + (profit >= 0 ? 'profit-pos' : 'profit-neg');
+
+      // アニメーション再トリガー
+      resultsEl.classList.remove('visible');
+      void resultsEl.offsetWidth;
+      resultsEl.classList.add('visible');
+    }
+
+    // Enterキーでも計算
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') calculate();
+    });
+
+    // Service Worker 登録 (PWA)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('SW registered:', reg.scope))
+          .catch(err => console.warn('SW registration failed:', err));
+      });
+    }
+  </script>
+</body>
+</html>
